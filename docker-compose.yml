@@ -1,0 +1,6 @@
+version: '2'
+services:
+  backend-api-load-test:
+    build: .
+    volumes:
+      - "./results:/opt/results"

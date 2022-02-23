@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: perfect-id-api-load-test
+  namespace: test
+spec:
+  ttlSecondsAfterFinished: 900
+  parallelism: 1
+  completions: 1
+  template:
+    spec:
+      imagePullSecrets:
+      - name: docker-registry-secret
+      containers:
+      - name: perfect-id-api-load-test
+        image: "gitlab.onefid.com:4567/perfect-id/perfect-id-api-load-test:main"
+        imagePullPolicy: Always
+        command: ["/opt/apache-jmeter-5.4.3/bin/entry.sh"]
+      restartPolicy: Never
+  backoffLimit: 1

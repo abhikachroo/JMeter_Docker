@@ -1,0 +1,35 @@
+variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    GITLAB_URI: gitlab.onefid.com:4567
+
+.deploy:
+    stage: deploy
+    image:
+        name: bitnami/kubectl:1.18-debian-10
+        entrypoint:
+            - "/usr/bin/env"
+            - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+stages:
+    - build
+    - deploy
+
+build:
+    stage: build
+    image: docker:18.09.1
+    services:
+        - docker:18.09.1-dind
+    script:
+        - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $GITLAB_URI
+        - docker build -f Dockerfile -t $IMAGE_TAG --build-arg version=$CI_COMMIT_SHA .
+        - docker push $IMAGE_TAG
+
+run test job:
+    extends: .deploy
+    when: manual
+    environment:
+        name: test
+    script:
+        - ./patch-job.sh
+        - cat patched.yml
+        - /opt/bitnami/kubectl/bin/kubectl apply -f patched.yml
